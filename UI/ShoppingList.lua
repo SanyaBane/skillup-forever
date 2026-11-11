@@ -5,7 +5,12 @@ if ns.broken then
 	return
 end
 local L = ns.L
-local frame, body, scroll, copyWindow, copyEdit, shown, footer, summary
+local frame
+-- The profession the window was opened for, or nil for every tracked plan. Refresh reads it, so a redraw
+-- keeps the scope the page asked for.
+---@type integer?
+local scope
+local body, scroll, copyWindow, copyEdit, shown, footer, summary
 -- The body's headings, rows and empty state, made once and reused: a refresh shows what it needs and hides the
 -- rest, so nothing from an earlier draw is left on the window (#553).
 ---@type table<string, FontString>
@@ -116,13 +121,26 @@ local function Refresh()
 	for _, heading in pairs(headingPool) do
 		heading:Hide()
 	end
-	local lists = ns.ShoppingList()
-	-- The window groups by source, not profession, so the header names every plan it is buying for.
+	local lists = ns.ShoppingList(scope)
+	-- The window groups by source, not profession, so the header names every plan it is buying for: the
+	-- profession the page asked for, or every tracked plan when none did.
 	local plans = {}
+	local summaryText
 	for _, list in ipairs(lists) do
 		plans[#plans + 1] = string.format(L["%s to %d"], list.profession, list.target)
 	end
-	summary:SetText(#plans > 0 and string.format(L["Buying for %s"], table.concat(plans, ", ")) or "")
+	if #plans > 0 then
+		summaryText = string.format(L["Buying for %s"], table.concat(plans, ", "))
+	elseif scope then
+		local profession = ns.RouteProfessions()[scope] or ns.PlayerProfessions()[scope]
+		summaryText = string.format(
+			L["Nothing is tracked for %s."],
+			profession and profession.name or string.format(L["profession %d"], scope)
+		)
+	else
+		summaryText = ""
+	end
+	summary:SetText(summaryText)
 	local top, any, total, unpriced, drawn = -10, false, 0, 0, 0
 	local headings =
 		{ gather = L["Gather"], vendor = L["Vendor"], auction = L["Auction house"], unknown = L["Unknown"] }
@@ -271,7 +289,7 @@ local function Create()
 	return frame
 end
 
-local ready, enteredWorld, variablesLoaded, pendingOpen = false, false, false, false
+local ready, enteredWorld, variablesLoaded, pendingOpen, pendingScope = false, false, false, false, nil
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("VARIABLES_LOADED")
@@ -288,19 +306,23 @@ events:SetScript("OnEvent", function(_, event)
 	C_Timer.After(0, function()
 		Create()
 		if pendingOpen then
+			scope = pendingScope
 			frame:Show()
 			Refresh()
-			pendingOpen = false
+			pendingOpen, pendingScope = false, nil
 		end
 	end)
 end)
 
-function ns.OpenShoppingList()
+---@param skillLine integer? show only this profession's plan; nil shows every tracked plan
+function ns.OpenShoppingList(skillLine)
 	if not ready then
-		pendingOpen = true
+		pendingOpen, pendingScope = true, skillLine
 		return
 	end
-	Create():Show()
+	local window = Create()
+	scope = skillLine
+	window:Show()
 	Refresh()
 end
 ns.WhenStale("shoppingList", Refresh)
