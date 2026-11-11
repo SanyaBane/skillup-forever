@@ -12,6 +12,8 @@ optional `### For addon authors` subsection after a version's player bullets.
 
 ## [Unreleased]
 
+- **The shopping list's copy window opens without an error.** Opening it to copy your list raised a Lua error and left the list unselected. It now opens with the whole list selected, ready to copy (#622).
+
 ## [1.6.2] - 2026-11-11
 
 - **Tells you which addon to update.** If another Forever addon you have installed is older than this one and stops it starting, the message now names that addon, so you know exactly what to update.
