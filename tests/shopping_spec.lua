@@ -25,6 +25,7 @@ local c = Client.load({
 	},
 })
 local ns = c.ns
+ns.SetCollectMode("gather")
 local module = c.G.SkillUpForeverObjectiveTracker
 equal(c.host.IsAttached(module), false, "the section waits for the world to load")
 c.EnterWorld()

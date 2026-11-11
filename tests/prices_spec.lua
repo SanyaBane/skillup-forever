@@ -119,6 +119,7 @@ local loot = Client.load({
 	data = { GatheredBy = {}, LootedFrom = { [LOOTED] = true }, VendorPrices = {}, RecipeData = {} },
 })
 local lootNs = loot.ns
+lootNs.SetCollectMode("gather")
 equal(lootNs.CanGather(LOOTED), "loot", "a reagent creatures drop needs no profession")
 local looted = lootNs.Price(LOOTED)
 equal(looted.source, "gather", "a looted reagent is priced as gathered")
@@ -146,6 +147,7 @@ local self = Client.load({
 	},
 })
 local selfNs = self.ns
+selfNs.SetCollectMode("gather")
 self.auction = { [MARKETED] = 200 }
 equal(selfNs.db.auctionOnly, false, "self-supplied reagents count as gathered by default")
 equal(selfNs.Price(MARKETED).copper, 0, "off, a looted reagent is free")
@@ -171,6 +173,7 @@ equal(selfNs.Price(MARKETED).copper, 0, "off again, it is free as before")
 local fish = Client.load({
 	data = { GatheredBy = { [FISH] = 356 }, VendorPrices = {}, RecipeData = {} },
 })
+fish.ns.SetCollectMode("gather")
 equal(fish.ns.CanGather(FISH), nil, "a fish needs Fishing")
 equal(fish.ns.Price(FISH), nil, "so a character without it has no gathered price")
 fish.professions = { { name = "Fishing", icon = 1, rank = 1, max = 75, id = 356 } }

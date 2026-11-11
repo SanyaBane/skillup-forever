@@ -189,28 +189,32 @@ end
 
 -- Cheapest known unit price and where it came from: "gather", "vendor", "auctionator"
 -- or "tsm". A price seen at a vendor beats the bundled list, since it includes
--- any reputation discount.
+-- any reputation discount. With Buy reagents on, a reagent you could gather that nothing prices is still
+-- bought at the auction house: its price is unknown, so it stays on the route and in the Auctionator list
+-- without guessing a number (#559).
 ---@param itemID integer
 ---@return SkillUpPrice?
 function ns.Price(itemID)
 	---@type SkillUpPrice|false|nil
 	local cached = priceCache[itemID]
 	if cached == nil then
+		-- The professions are the baseline a later skill-line change is compared with, even when this item
+		-- turns out not to be gatherable.
+		if not professions and ns.PlayerProfessions then
+			professions = ns.PlayerProfessions()
+		end
 		local vendor = ns.db.vendor[itemID] or ns.VendorPrices[itemID]
 		local ah = AuctionPrice(itemID)
 		if ns.CollectMode() == "gather" then
 			cached = Gathered(itemID)
 		end
-		if cached then
-			priceCache[itemID] = cached
-			return cached
-		elseif vendor and (not ah or vendor <= ah.copper) then
+		if not cached and vendor and (not ah or vendor <= ah.copper) then
 			cached = { copper = vendor, source = "vendor" }
-		elseif ah then
+		elseif not cached and ah then
 			cached = ah
-		else
-			-- With *Buy reagents* on, a material you gather that no vendor or auction prices is still yours to
-			-- gather: priced as gathered rather than left out, which could empty the route (#162).
+		elseif not cached and ns.CollectMode() == "auction" and ns.CanGather(itemID) then
+			cached = { copper = 0, source = "auction", unknown = true }
+		elseif not cached then
 			cached = Gathered(itemID) or false
 		end
 		priceCache[itemID] = cached
