@@ -12,6 +12,8 @@ optional `### For addon authors` subsection after a version's player bullets.
 
 ## [Unreleased]
 
+- **A bolt made from gathered cloth is no longer free.** With Buy reagents off, a Bolt of Silk Cloth cost nothing because the cloth did, so recipes using bolts looked profitable. A crafted material now counts as worth at least what selling it brings, its auction price after the cut or its vendor price, whichever is higher (#598).
+
 ## [1.6.0] - 2026-11-11
 
 <!-- discord-image: docs/screenshots/route.png -->
