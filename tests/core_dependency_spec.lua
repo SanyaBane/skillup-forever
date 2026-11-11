@@ -123,11 +123,23 @@ local noSection, noSectionLines = Require({ APIKit = { Hub = function() end, Not
 assert(noSection.broken == true, "a ForeverCore without the tracker section API stops the addon")
 assert(#noSectionLines == 1, "and the shared warning says so in one error line")
 
+-- The Professions tabs arrived in ForeverCore 1.4.0 and SetMinWidth in 1.5.0:
+-- UI/Pages.lua and UI/RecipeList.lua call both.
+local noWidth, noWidthLines = Require({
+	APIKit = { Hub = function() end, NotReady = function() end },
+	TrackerSection = { Create = function() end },
+	TrackerLine = { SetInteractive = function() end },
+	ProfessionTabs = { Register = function() end },
+})
+assert(noWidth.broken == true, "a ForeverCore without ProfessionTabs.SetMinWidth stops the addon")
+assert(#noWidthLines == 1, "and the shared warning says so in one error line")
+
 -- Every member this addon calls is there: the addon runs and says nothing.
 local ready, readyLines = Require({
 	APIKit = { Hub = function() end, NotReady = function() end },
 	TrackerSection = { Create = function() end },
 	TrackerLine = { SetInteractive = function() end },
+	ProfessionTabs = { Register = function() end, SetMinWidth = function() end },
 })
 assert(ready.broken == nil, "a core with every member the addon calls runs it")
 assert(#readyLines == 0, "and says nothing")
