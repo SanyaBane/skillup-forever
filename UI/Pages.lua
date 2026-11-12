@@ -263,9 +263,6 @@ local function CreateFrames()
 		icon = ns.ICON,
 		tooltip = L["SkillUp"],
 		page = shell,
-		-- The wide recipe list's one width, when it has been measured; core keeps the client's own width
-		-- otherwise.
-		minWidth = ns.RecipeListMinWidth and ns.RecipeListMinWidth() or nil,
 		onSelect = Selected,
 		safeCall = ns.core and ns.core.SafeCall,
 	})
@@ -341,18 +338,6 @@ ns.WhenStale("pages", RefreshSettings)
 ---@return ForeverProfessionTab?
 function ns.Pages.SideTab()
 	return tab
-end
-
--- The one width ForeverCore keeps for SkillUp's tab: the wide recipe list raises it, nil gives the client's
--- own width back. Before the tab is registered there is nothing to change; registration carries the width.
----@param width number?
----@return boolean applied
-function ns.Pages.SetMinWidth(width)
-	if not tab then
-		return false
-	end
-	ForeverCore.ProfessionTabs.SetMinWidth(KEY, width)
-	return true
 end
 
 ---@param id string
